@@ -1,0 +1,183 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+
+contract NFT is ERC721Enumerable , ERC721URIStorage , Ownable {
+    address payable adminAddress;
+    string tokenName;
+    string tokenSymbol;
+
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    constructor (string memory _tokenName, string memory _symbol ) ERC721(_tokenName, _symbol) Ownable(msg.sender) {
+		adminAddress = payable(msg.sender);
+        tokenName = _tokenName;
+        tokenSymbol = _symbol;
+    }   
+
+    modifier onlyAdmin {
+      require(adminAddress == msg.sender , "only admin can perform this action");
+      _;
+    }
+
+    /**
+     * @dev Mapping from tokenId to bool
+     */
+    mapping (uint256 => bool) internal _tokenExists;
+    
+    /**
+     * @dev Mapping from tokenId to NFTToken struct
+     */
+    mapping (uint256 => address payable) private _tokenIssuer;
+
+    /**
+     * @dev Mapping from token ID to approved address
+     */
+    mapping (uint256 => address) private _tokenApprovals;
+
+    /**
+     * @dev Mapping from owner to issuer approvals
+     */
+    mapping (address => mapping (address => bool)) private _issuerApprovals;
+
+    /**
+     * @dev Function to check token existence
+     * @param tokenId check for this tokenid
+     */
+    function exists(uint256 tokenId)  public view virtual returns (bool) {
+        return _tokenExists[tokenId];
+    }
+
+    function getAllTokenIds() public view returns (uint256[] memory) {
+        uint256 totalSupply = ERC721Enumerable.totalSupply();   
+        uint256[] memory allTokens = new uint256[](totalSupply);
+        for (uint256 i = 0; i < totalSupply; i++) {
+           allTokens[i] = ERC721Enumerable.tokenByIndex(i); 
+        }
+        return allTokens;
+    }
+
+    
+    /**
+     * @dev Function to create a token
+     * @param _owner Owner to which the token would be assigned initially
+     */
+    function createToken(address payable _owner, string memory _uri)  public returns (uint256) {
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
+        super._mint(_owner, newItemId);
+        _setTokenURI(newItemId , _uri);
+        _tokenExists[newItemId] = true;
+        _tokenIssuer[newItemId] = payable(msg.sender);
+        return newItemId;
+    }
+	
+    /**
+     * @dev Function to burn token (remove token from system)
+     * @param _tokenId tokenId of token which we want to burn
+     */
+    function burn(uint256 _tokenId) public {
+        _tokenExists[_tokenId] = false;
+        _burn(_tokenId);
+    }
+
+
+
+    /**
+     * @dev Function to get issuer of a token
+     * @param _tokenId tokenId of token for which we want to fetch issuer
+     */
+    function issuerOf(uint256 _tokenId) public view returns (address payable) {
+        return _tokenIssuer[_tokenId];
+    }
+
+    /**
+     * @dev Function to transfer token from one wallet to another
+     * @param _to address of wallet to which we are transferring the token to
+     * @param _tokenId tokenId of token which we are transferring
+     */
+    function transfer(address _to,uint256 _tokenId) public {
+		require(_to != address(0), "Transfer to the zero address");
+		require(msg.sender != address(0), "Transfer from the zero address");
+		require(ownerOf(_tokenId) == msg.sender, "Token does not belong to owner");
+        super.transferFrom(msg.sender, _to, _tokenId);
+	
+    }
+
+    /**
+     * @dev Approves another address to transfer the given token ID
+     * The zero address indicates there is no approved address.
+     * There can only be one approved address per token at a given time.
+     * Can only be called by the token owner or an approved operator.
+     * @param _to address to be approved for the given token ID
+     * @param _tokenId uint256 ID of the token to be approved
+     */
+
+    function approve(address _to, uint256 _tokenId) public virtual override(ERC721 , IERC721){
+        address owner = ownerOf(_tokenId);
+        require(_to != owner, "ERC721: approval to current owner");
+        require(msg.sender == owner || isApprovedForAll(owner, msg.sender),
+            "ERC721: approve caller is not owner nor approved for all"
+        );
+        _tokenApprovals[_tokenId] = _to;
+        emit Approval(owner, _to, _tokenId);
+    }
+
+    /**
+     * @dev Gets the approved address for a token ID, or zero if no address set
+     * Reverts if the token ID does not exist.
+     * @param _tokenId uint256 ID of the token to query the approval of
+     * @return address currently approved for the given token ID
+     */
+    function getApproved(uint256 _tokenId) public view virtual override (ERC721 , IERC721) returns (address) {
+        return _tokenApprovals[_tokenId];
+    }
+
+    /**
+     * @dev Sets or unsets the approval of a given operator
+     * An operator is allowed to transfer all tokens of the sender on their behalf.
+     * @param to operator address to set the approval
+     * @param approved representing the status of the approval to be set
+     */
+    function setApprovalForAll(address to, bool approved) public virtual override (ERC721 , IERC721) {
+        require(to != msg.sender, "ERC721: approve to caller");
+        _issuerApprovals[msg.sender][to] = approved;
+        emit ApprovalForAll(msg.sender, to, approved);
+    }
+
+    /**
+     * @dev Tells whether an operator is approved by a given owner.
+     * @param owner owner address which you want to query the approval of
+     * @param operator operator address which you want to query the approval of
+     * @return bool whether the given operator is approved by the given owner
+     */
+    function isApprovedForAll(address owner, address operator) public view virtual override (ERC721 , IERC721) returns (bool) {
+        return _issuerApprovals[owner][operator];
+    }
+
+    /**
+     * @dev function to get token uri.
+     * @param _tokenId tokenId for which we want to fetch uri
+     */
+    function tokenURI(uint256 _tokenId) public view virtual override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(_tokenId);
+    }
+
+    function _increaseBalance(address account, uint128 value) internal virtual override(ERC721, ERC721Enumerable){
+        super._increaseBalance(account, value);
+    }
+
+    function _update(address to, uint256 tokenId, address auth) internal virtual override(ERC721, ERC721Enumerable) returns (address) {
+        return super._update(to, tokenId, auth);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721URIStorage, ERC721Enumerable) returns (bool) {
+        return ERC721Enumerable.supportsInterface(interfaceId);
+    }
+}
