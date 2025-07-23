@@ -26,3 +26,21 @@ async function printHello() {
 await printHello().then((resp) => console.log(resp)).catch((err) => console.error(" ERROR while resolving promise : " ,err))
 
 */
+
+let arr = [4,3,0,8,0,5,0,1,0]
+
+let nonZeroIndex = 0;
+
+for (let i = 0 ; i < arr.length ; i ++) {
+    if (arr[i] != 0) {
+        arr[nonZeroIndex] = arr[i];
+        nonZeroIndex++;
+    }
+}
+
+while (nonZeroIndex < arr.length) {
+    arr[nonZeroIndex] = 0;
+    nonZeroIndex++;
+}
+
+console.log(arr);
