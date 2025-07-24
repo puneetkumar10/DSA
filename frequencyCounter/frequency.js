@@ -6,11 +6,14 @@
 
 // Sample Input:
 
-const resp = sameFrequency(182,281) // true
+let resp = sameFrequency(182,281) // true
 console.log(resp);
-// sameFrequency(34,14) // false
-// sameFrequency(3589578, 5879385) // true
-// sameFrequency(22,222) // false
+resp = sameFrequency(34,14) // false
+console.log(resp);
+resp = sameFrequency(3589578, 5879385) // true
+console.log(resp);
+resp = sameFrequency(22,222) // false
+console.log(resp);
 
 /**
  1. convert them into strings
@@ -18,6 +21,7 @@ console.log(resp);
  3. Loop over array elements and check its values for both 
  */
 
+// O(N+N+N)
 function sameFrequency(value1 , value2) {
     let val1Str = value1.toString();
     let val2Str = value2.toString();
