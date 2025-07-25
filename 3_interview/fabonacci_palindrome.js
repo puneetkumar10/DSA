@@ -16,7 +16,7 @@
 /** PALINDROM number way 2 */
 
 let num = 1221; //integer
-let reversed = parseInt(num.toString().split('').reverse().join(''));  // "1221" => ["1" , "2" , "2" , "1"] => ["1" , "2" , "2" , "1"] => 1221 
+let reversed = parseInt(num.toString().split('').reverse().join(''));  // "1221" => ["1" , "2" , "2" , "1"] => ["1" , "2" , "2" , "1"] => "1221" 
 num === reversed ? console.log("Palindrome Number") : console.log("Not a palindrome numeber");
 
 
