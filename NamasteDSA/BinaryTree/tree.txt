@@ -21,3 +21,5 @@ No cycles
  */
 
 1. Pre-order traversal => root -> left -> right
+2. In-order traversal => left -> root -> right
+3. Post-order traversal => left -> right -> root
