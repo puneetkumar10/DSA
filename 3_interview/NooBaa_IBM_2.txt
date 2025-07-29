@@ -1,0 +1,83 @@
+Given root of a binary tree (not sorted, not balanced)
+
+Structure of node:
+
+Node {
+  Integer value,
+  Node left,
+  Node right
+}
+
+
+Reminder: When a certain node does not have one (or both) of its children, the corresponding left/right members would be Null.
+ 
+Part 1)
+Print all the leaves of a given tree, regardless of the order.
+The algorithm should run on the tree once.
+
+Example of a tree:
+                             21 
+                         /        \
+                        7           12
+                     /     \      /    \
+                    16      19   22     14
+                   /   \    /     \     /  \ 
+                  8    11  15      5   2    4
+                                      / 
+                                     29
+
+// output = [8,11,15,5,29,4]
+
+function traverse (curr) {
+
+  if ( !curr ) return ;
+  // in order traversal 
+  traverse (curr.left) ; 
+  if (curr.left == null && curr.right == null) {
+    console.log(curr.val);
+  }
+  traverse(curr.right);
+  
+}
+traverse (root);
+
+
+Part 2)
+Print boundary/perimeter of a binary tree.
+The algorithm should run on the tree once.
+
+// output = [21 , 7, 16, 8, 11, 15, 5, 2, 29, 4, 14, 12]
+
+function boundary (curr) {
+  if (! curr ) return ;
+  let isBoundary = false;
+
+  traverseLeft (curr.left);
+  traverseRight (curr.right);
+  // traversing left subtree 
+  function traverseLeft (curr) {
+      if (curr.left == null && curr.right == null) {
+        console.log(curr.val);
+      } else if () {
+        console.log(curr.val);
+      }
+      traverseLeft (curr.left)
+      traverseLeft (curr.right)
+  }
+  // boundary traversing right subtree (Bottom up approach)
+  function traverseRight (curr) {
+      traverseRight (curr.right);
+      if () {
+        
+      }
+      console.log(curr.val);
+      traverseRight (curr.right);
+      traverseLeft (curr.light);
+  }
+}
+
+boundary (root); 
+
+// dryRun output = 21 , 7, 16 , 8
+
+  
