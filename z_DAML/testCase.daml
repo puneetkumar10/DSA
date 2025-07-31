@@ -1,0 +1,33 @@
+module Test where
+
+import Daml.Script
+import KYC
+
+testKycFlow : Script ()
+testKycFlow = script do
+
+  -- Create parties
+  alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")
+  verifier <- allocatePartyWithHint "Verifier" (PartyIdHint "Verifier")
+
+  -- 1. Create initial KYC request
+  kycCid <- submit alice do
+    createCmd KYCRequest with
+      applicant = alice
+      verifier = verifier
+      name = "Alice"
+      idNumber = "BAD-ID"
+
+  -- 2. Verifier rejects the request
+  rejectedCid <- submit verifier do
+    exerciseCmd kycCid (Reject with reason = "Invalid ID format")
+
+  -- 3. Alice resubmits corrected KYC
+  resubmittedCid <- submit alice do
+    exerciseCmd rejectedCid (Resubmit with newName = "Alice", newId = "VALID-ID-123")
+
+  -- 4. Verifier accepts the resubmitted KYC
+  _ <- submit verifier do
+    exerciseCmd resubmittedCid Accept
+
+  return ()
