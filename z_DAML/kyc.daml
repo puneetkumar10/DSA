@@ -1,0 +1,52 @@
+module KYC where
+
+template KYCRequest
+  with
+    applicant : Party
+    verifier : Party
+    name : Text
+    idNumber : Text
+  where
+    signatory applicant
+    observer verifier
+
+    choice Accept : ContractId KYCApproved
+      controller verifier
+      do
+        archive self
+        create KYCApproved with applicant, verifier, name, idNumber
+
+    choice Reject : ContractId KYCRejected
+      with
+        reason : Text
+      controller verifier
+      do
+        archive self
+        create KYCRejected with applicant, verifier, reason
+
+template KYCApproved
+  with
+    applicant : Party
+    verifier : Party
+    name : Text
+    idNumber : Text
+  where
+    signatory verifier, applicant
+
+template KYCRejected
+  with
+    applicant : Party
+    verifier : Party
+    reason : Text
+  where
+    signatory verifier
+    observer applicant
+
+    choice Resubmit : ContractId KYCRequest
+      with
+        newName : Text
+        newId : Text
+      controller applicant
+      do
+        archive self
+        create KYCRequest with applicant, verifier, name = newName, idNumber = newId
