@@ -32,3 +32,19 @@ console.log(resp)
 //    }
 //    return uniqEle + 1;
 // };
+
+/** LEETCODE 27
+ * @param {number[]} nums
+ * @param {number} val
+ * @return {number}
+ */
+var removeElement = function(nums, val) {
+    let foundIndex = 0;
+    for (let i = 0 ; i < nums.length ; i ++) {
+        if (nums[i] !== val) {
+            nums[foundIndex] = nums[i]
+            foundIndex ++ ;
+        }
+    }
+    return foundIndex
+};
