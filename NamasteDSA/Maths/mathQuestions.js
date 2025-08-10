@@ -39,4 +39,3 @@ while (number > 0) {
     number = Math.trunc(number / 10);
 }
 console.log(rev * multiplier);
-
