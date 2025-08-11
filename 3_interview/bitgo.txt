@@ -253,3 +253,94 @@ Example: BitGo 2-of-3 rotation
 
 # ------------------------------------------------------------------------------------------------------------
 
+# Scenario 1 
+
+You’re the lead engineer at a crypto custodian. At 2:14 AM, your on-chain monitoring detects an unauthorized transfer from a hot wallet holding 0.5% of your total assets.
+
+	• What’s your immediate response in the first 15 minutes?
+	• What’s your plan over the next 24 hours?
+	• How do you prevent this from happening again?
+
+
+Hot wallet breach — model answer
+
+0–15 min (Contain)
+
+	• Hit the kill-switch/policy freeze: block all outgoing from that wallet; pause job queues.
+	• Revoke signer ability (multisig/MPC): disable the suspected key/share immediately.
+	• Page SecOps/IR lead, start an incident channel; assign roles (incident commander, comms, forensics).
+	• Start on-chain tracing of the outflow; ping known exchanges/custodians for potential freezes.
+
+15–60 min (Stabilize)
+
+	• Spin up a fresh hot wallet via audited HSM/MPC key ceremony; enforce limits/whitelists.
+	• Drain remaining funds from the old hot wallet to the new one (staggered, policy-gated).
+	• Lock down infra: rotate API tokens, service accounts, mTLS certs; quarantine suspicious hosts.
+
+Next 24 h (Recover & Investigate)
+
+	• Deep-dive logs: signing requests, approval service, build pipeline, endpoint EDR, IAM changes.
+	• Determine vector (key exfil, API/key abuse, insider, dependency compromise).
+	• Stakeholder comms: internal leadership + impacted clients; regulatory notice if thresholds hit.
+	• Document timeline; preserve evidence; start post-mortem draft.
+
+Prevent (Hardening)
+
+	• Keep minimal float in hot; auto-sweep excess to warm/cold.
+	• All hot signing inside HSM/MPC, with velocity/amount/geo policy checks.
+	• Egress allow-listing for broadcast nodes; anomaly detection with circuit breakers.
+	• Secrets program: short-lived tokens, just-in-time access, WebAuthn for admins, quarterly IR drills.
+
+
+
+Scenario 2 – MPC Key Rotation
+
+Your MPC-based custody wallet is configured as a 2-of-3 threshold scheme.
+One participant’s share may have been compromised, but the attacker has not acted yet.
+
+	• Walk me through exactly how yo would rotate the keys without changing the wallet address.
+	• What risks exist during this process?
+
+MPC 2-of-3 key rotation — Interview-grade answer
+
+0–15 min (Containment)
+
+	• Freeze transaction approvals via the MPC policy engine — no new signing rounds initiated.
+	• If the suspected compromised party is a signer, remove them from active quorum.
+	• Notify all MPC participants (other signers, ops, compliance).
+
+
+Key rotation process (No address change)
+
+	• Why this works: In MPC/TSS, the public key and address remain constant; private key is never reconstructed. We can re-distribute fresh key shares to new participants while keeping the same on-chain identity.
+
+Steps:
+
+	1. Initiate re-share protocol:
+		○ Remaining honest participants (at least the quorum) collaborate in an MPC “resharing” ceremony.
+		○ This generates new private key shares for all parties, replacing the compromised one.
+		○ At no point is the full private key assembled — the public key stays the same, so the address doesn’t change.
+	2. Secure share distribution:
+		○ Each new share generated on a hardware-backed MPC node (HSM/secure enclave).
+		○ Deliver to new or existing authorized signer via secure channel (physical handover, encrypted channel, out-of-band confirmation).
+	3. Reconfigure policies:
+		○ Update MPC config to only accept signing rounds from the new set of participants.
+		○ Remove compromised party’s node ID and credentials from the MPC network.
+	4. Verify:
+		○ Conduct a low-value test transaction to ensure quorum works.
+		○ Monitor MPC logs for any attempted joins from old participant.
+
+
+Post-rotation heightened security
+
+	• Flag wallet as “under watch”:
+		○ Apply stricter withdrawal limits, velocity checks, and mandatory manual approval for high-value transfers for a defined period (e.g., 30 days).
+	• Increase logging detail for all MPC signing events.
+	• Require additional out-of-band verification for all transactions during watch period.
+
+
+Risks during process
+
+	• Insider risk: Compromised participant may still try to sign before rotation completes → why immediate freeze is step 1.
+	• Operational delays: If rotation takes hours, client withdrawals may be impacted → have contingency hot wallet for operational liquidity.
+	• MPC node compromise: Ensure compromised node cannot rejoin or eavesdrop on re-sharing process.
