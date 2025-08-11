@@ -1,0 +1,255 @@
+// Wallet security : --
+
+1. Wallet Types & Architecture
+
+You need to clearly differentiate:
+
+	• Hot wallets → connected to internet, quick transfers, higher risk.
+	• Cold wallets → offline storage (HSMs, paper wallets, air-gapped devices).
+	• Warm wallets → semi-online, controlled access for batching transactions.
+	• Custodial vs Non-Custodial
+		○ Custodial: service provider controls private keys (e.g., exchanges, BitGo in some products)
+		○ Non-custodial: user controls keys (e.g., MetaMask)
+	• Multi-signature wallets
+		○ Require m-of-n keys to sign a transaction
+		○ Reduces single point of failure
+		○ Common in institutional custody
+
+BitGo-specific note: They are known for 2-of-3 or 3-of-5 multisig, where one key is held by BitGo, one by the client, and a backup is stored securely offline.
+
+
+
+2. Wallet Security Best Practices
+
+They’ll expect you to talk about layered security:
+
+
+Key Management
+
+	• BIP39 → Mnemonic seed phrase generation.
+	• BIP32 → Hierarchical Deterministic (HD) wallets (derive child keys from a master key).
+	• BIP44 → Multi-account structure for different coins.
+	• Key rotation → Regularly replacing keys without losing funds.
+	• Shamir’s Secret Sharing (SSS) → Splitting keys into shares for disaster recovery.
+
+
+Transaction Signing
+
+	• Offline signing (cold signing): sign on a device without internet, then broadcast from a separate system.
+	• EIP-712 typed data signing: protects from malicious UI by making signed data human-readable.
+	• Threshold Signatures (TSS): cryptographic signing without ever reconstructing the full private key.
+
+
+
+3. Threat Modeling
+
+Be ready to walk through potential attacks and mitigations:
+
+	• Private key theft
+		○ Mitigation: HSM, multisig, air-gapped devices.
+	• Replay attacks
+		○ Mitigation: chain ID, EIP-155.
+	• Man-in-the-middle during signing
+		○ Mitigation: hardware wallet display verification, TLS pinning.
+	• Phishing/social engineering
+		○ Mitigation: whitelisting withdrawal addresses, manual verification.
+	• Compromised hot wallet
+		○ Mitigation: withdrawal limits, approval workflows, fraud detection.
+	• Supply chain attack on wallet software
+		○ Mitigation: code signing, reproducible builds.
+
+
+
+4. BitGo-Specific Focus Areas
+
+They may ask:
+
+	• Difference between Multi-Sig vs MPC (Multi-Party Computation) and why institutions might prefer MPC.
+	• How BitGo’s “key sharding” works.
+	• Regulatory compliance for custody (SOC 2, CCSS Level 3).
+	• Disaster recovery if one key holder is compromised.
+	• Cold storage key ceremony process.
+
+
+
+5. Sample Questions You Might Face
+
+	• Explain the difference between multisig and MPC wallets.
+	• How would you design a wallet system that minimizes single points of failure?
+	• How do you securely generate and store private keys?
+	• What is threshold signing and how is it different from multisig?
+	• How would you mitigate a compromised hot wallet scenario?
+	• Explain how HD wallets (BIP32/BIP44) work and why they’re used.
+	• How do you handle key rotation without moving funds?
+	• What’s the process of offline signing for transactions?
+	• How do you protect against phishing attacks on wallet users?
+	• Describe BitGo’s 2-of-3 model and why it’s secure.
+
+
+# ------------------------------------------------------------------------------------------------------------
+
+Great question! That m/44'/60'/0'/0/0 string is a BIP-44 derivation path. It tells the HD (hierarchical deterministic) wallet where in the key tree to derive a key from your seed.
+
+Here’s how it breaks down:
+
+	• m — master node (root of the tree)
+	• 44' — purpose: 44’ means BIP-44 (standard layout)
+	• 60' — coin type: 60’ = Ethereum (0’ is Bitcoin, 118’ is Cosmos, etc.)
+	• 0' — account: lets you separate logical accounts (0’, 1’, 2’, …). These are hardened.
+	• 0 — change: 0 = external (receiving) addresses, 1 = internal (change). For Ethereum, you normally use 0.
+	• 0 — address index: the nth key (0, 1, 2, …)
+
+const { ethers } = require("ethers");
+const bip39 = require("bip39");
+const { HDNode } = ethers.utils;
+
+const mnemonic = bip39.generateMnemonic();
+const passphrase = "optional-BIP39-passphrase"; // leave "" if not using one
+const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase);
+const root = HDNode.fromSeed(seed);
+
+const basePath = "m/44'/60'/0'/0"; // account 0, external chain
+for (let i = 0; i < 5; i++) {
+  const node = root.derivePath(`${basePath}/${i}`);
+  console.log(i, node.address, node.privateKey);
+}
+
+
+
+# ------------------------------------------------------------------------------------------------------------
+
+
+Hashing
+
+	• Purpose: Convert input data into a fixed-size digest that is deterministic, irreversible, and collision-resistant.
+	• Properties:
+		○ One-way (can’t reverse)
+		○ Same input → same output
+		○ Small change in input → completely different output
+		○ Collision-resistant (hard to find two inputs with same hash)
+
+Common in blockchain:
+
+	• SHA-256 → Bitcoin block hashes, transaction IDs, address generation.
+	• Keccak-256 (Ethereum) → Smart contract addresses, function selectors.
+	• RIPEMD-160 → Combined with SHA-256 for Bitcoin addresses.
+
+Use cases in wallets:
+
+	• Deriving addresses from public keys.
+	• Creating transaction IDs.
+	• Validating data integrity.
+
+
+
+Symmetric encryption
+
+	• Same key for encryption and decryption.
+	• Fast, efficient — but key distribution is the problem.
+	• Example algorithms: AES-256, ChaCha20.
+
+Use in wallets:
+
+	• Encrypting private keys at rest (e.g., wallet.dat in Bitcoin Core, MetaMask vault) with a user password-derived key.
+
+
+
+Asymmetric cryptography
+
+	• Two keys: public (shareable) and private (secret).
+	• Anything encrypted with one key can be decrypted with the other.
+	• Used for digital signatures and key exchange.
+
+Use in blockchain:
+
+	• Wallets use asymmetric key pairs:
+		○ Private key → sign transactions.
+		○ Public key → verify signatures.
+	• Bitcoin/Ethereum → ECDSA over secp256k1.
+	• Some chains → EdDSA (Ed25519).
+
+
+Quick mapping for interview:
+Purpose	Algorithm	Where used in blockchain/wallets
+Hashing	SHA-256, Keccak-256, RIPEMD-160	Addresses, block hashes, tx IDs
+Symmetric	AES-256	Encrypt private keys at rest
+Asymmetric	ECDSA (secp256k1), EdDSA	Signing transactions, verifying ownership
+
+
+
+2. Key rotation — detailed process
+
+Key rotation = replacing old keys with new ones while keeping operations secure and uninterrupted.
+
+
+
+Why rotate keys?
+
+	• Compromise suspected.
+	• Compliance requirements (e.g., PCI-DSS, SOC 2).
+	• Periodic security hygiene.
+
+
+
+Rotation in different blockchain models
+
+
+A. Account-based (Ethereum, smart contract wallets)
+
+	• If using an EOA: You can’t rotate the private key without changing the address.
+	• If using a smart contract wallet (e.g., Gnosis Safe, Argent):
+		1. Deploy wallet contract with an initial signer key.
+		2. When rotating:
+			§ Propose adding new key.
+			§ Approve change with old key.
+			§ Remove old key.
+		3. Contract now authorizes the new key — funds stay in the same address.
+
+BitGo context: Their custody wallets are usually smart-contract-based or policy-managed, allowing signer key changes without address change.
+
+
+
+B. UTXO-based (Bitcoin, Litecoin)
+
+	• Funds are tied to addresses, not accounts.
+	• Key rotation is just:
+		○ Stop using old address for new deposits.
+		○ Generate new addresses from HD wallet for future deposits.
+		○ Spend old funds to new addresses when convenient.
+
+
+
+C. MPC/TSS wallets
+
+	• Public address remains the same.
+	• Keys are mathematically split into shares.
+	• Rotation process:
+		1. Parties agree to generate new shares.
+		2. MPC protocol re-shares the key without ever reconstructing it.
+		3. Old shares are securely destroyed.
+	• Advantage: No address change, no on-chain action.
+
+
+
+Best practices for rotation
+
+	• Announce rotation to relevant parties (exchanges, custodians).
+	• Time rotation during low transaction volume.
+	• Maintain dual authorization temporarily (old + new) during transition.
+	• Securely delete old keys/shares.
+
+
+
+Example: BitGo 2-of-3 rotation
+
+	• Three keys: Client, BitGo, Backup.
+	• If rotating client key:
+		1. Client generates new key securely (e.g., HSM).
+		2. BitGo updates policy to accept transactions signed by the new key + BitGo key.
+		3. Backup key remains unchanged.
+	• Funds remain in the same wallet address.
+
+
+
+# ------------------------------------------------------------------------------------------------------------
+
