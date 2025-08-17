@@ -23,3 +23,9 @@ var countNodes = function(root) {
     traverse(root)
     return count;
 };
+
+// ChatGPT efficient solution
+var countNodes = function(root) {
+  if (!root) return 0;
+  return 1 + countNodes(root.left) + countNodes(root.right);
+};
