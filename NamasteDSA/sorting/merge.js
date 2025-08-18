@@ -1,3 +1,4 @@
+// to revise
 let arr = [8, 3, 5, 1];
 
 let response = mergeSort(arr)
