@@ -29,3 +29,25 @@ var zeroFilledSubarray = function(nums) {
     }
     return count;
 };
+
+// Correct Appraoch O(N) 
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var zeroFilledSubarray = function(nums) {
+    let total = 0;      // total zero-filled subarrays
+    let run = 0;        // current streak length of consecutive zeros
+
+    for (let i = 0; i < nums.length; i++) {
+        if (nums[i] === 0) {
+            run += 1;           // extend the current zero run
+            total += run;       // each new zero adds 'run' subarrays ending at i
+        } else {
+            run = 0;            // break the run
+        }
+    }
+
+    return total;
+};
