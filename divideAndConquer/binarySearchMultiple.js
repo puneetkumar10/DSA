@@ -1,6 +1,6 @@
 /** Leetcode 34 
  * We will find mid and select the side which is sorted , and apply Binary search again 
- * this way we will remove unsorted half 
+ * this way we will remove unsorted half  
  * @param {number[]} nums
  * @param {number} target
  * @return {number[]}
