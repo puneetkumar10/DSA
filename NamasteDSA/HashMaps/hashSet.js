@@ -1,3 +1,7 @@
+/** 
+ * 705. Design HashSet
+ * 
+*/
 var MyHashSet = function() {
     this.set = new Array(1000001).fill(false);
 };
