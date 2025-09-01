@@ -36,7 +36,7 @@ var maxAverageRatio = function(classes, extraStudents) {
 };
 
 
-// HEAP SOLUTION CHATGPT 
+// HEAP SOLUTION CHATGPT - NEED TO BE TRACED 
 
 /**
  * @param {number[][]} classes
