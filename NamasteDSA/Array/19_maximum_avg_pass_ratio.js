@@ -1,4 +1,4 @@
-/**
+/** LEETCODE 1792
  * @param {number[][]} classes
  * @param {number} extraStudents
  * @return {number}
