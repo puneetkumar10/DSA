@@ -30,3 +30,19 @@ var mostCommonWord = function(paragraph, banned) {
     }
     return maxWord;
 };
+
+
+// More efficient solution 
+
+var mostCommonWord = function(paragraph, banned) {
+  const bannedSet = new Set(banned.map(b => b.toLowerCase()));
+  const counts = Object.create(null);
+  let max = 0, maxWord = "";
+
+  for (const w of (paragraph.toLowerCase().match(/\w+/g) || [])) {
+    if (bannedSet.has(w)) continue;
+    const c = (counts[w] = (counts[w] || 0) + 1);
+    if (c > max) { max = c; maxWord = w; }
+  }
+  return maxWord;
+};
