@@ -20,3 +20,19 @@ var canBeTypedWords = function(text, brokenLetters) {
     return wordArr.length-count;
 
 };  
+
+// more efficient solution 
+
+var canBeTypedWords = function(text, brokenLetters) {
+  const broken = new Set(brokenLetters);
+  let ok = 0;
+
+  for (const word of text.split(" ")) {
+    let valid = true;
+    for (const ch of word) {
+      if (broken.has(ch)) { valid = false; break; }
+    }
+    if (valid) ok++;
+  }
+  return ok;
+};
