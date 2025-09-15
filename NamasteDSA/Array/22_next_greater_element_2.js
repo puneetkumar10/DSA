@@ -1,4 +1,4 @@
-// Leetcode 503
+// Leetcode 503 
 
 var nextGreaterElements = function(nums) {
   let resp = [];
