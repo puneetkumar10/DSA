@@ -1,4 +1,4 @@
-/**
+/** LLETCODE 1154
  * @param {string} date
  * @return {number}
  */
@@ -9,7 +9,7 @@ var dayOfYear = function(date) {
     for (let i = 0 ; i < parseInt(dateArr[1]) - 1 ; i++) {
         total = total + parseInt(monthArr[i])
     }
-    // leap year check
+    // leap year check (if it is leap year and month is greater than 2 {February} then add 1)
     if (((parseInt(dateArr[0]) % 4 === 0 && parseInt(dateArr[0]) % 100 !== 0) || parseInt(dateArr[0]) % 400 === 0) &&  parseInt(dateArr[1]) > 2) {
         return total + parseInt(dateArr[2]) + 1 ;
     } else {
