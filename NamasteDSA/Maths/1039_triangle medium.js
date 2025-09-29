@@ -1,3 +1,4 @@
+// LEETCODE 1039 
 var minScoreTriangulation = function(v) {
     let n = v.length;
     let dp = Array.from({length:n}, ()=>Array(n).fill(0));
