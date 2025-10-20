@@ -16,3 +16,15 @@ var finalValueAfterOperations = function(operations) {
 
     return output;
 };
+/*
+if (operations[i] == "++X" || operations[i] == "X++") {
+            output += 1;
+        } else if (operations[i] == "--X" || operations[i] == "X--") {
+            output -= 1;
+        } else {
+            return 0; // invalid operation
+        }
+*/
+
+// CAN BE REPLACED WITH TERNARY OPERATOR 
+// output += (operations[i] === "++X" || operations[i] === "X++") ? 1 : -1;
