@@ -16,3 +16,17 @@ var hasSameDigits = function(s) {
     }
     return false;
 };
+
+// removed parseInt used charCodeAt which is faster than parseInt
+var hasSameDigits = function (s) {
+  while (s.length > 2) {
+    let temp = "";             
+    for (let i = 0; i < s.length - 1; i++) {
+      const a = s.charCodeAt(i) - 48;    
+      const b = s.charCodeAt(i + 1) - 48;
+      temp += (a + b) % 10;
+    }
+    s = temp;
+  }
+  return s.length === 2 && s[0] === s[1];
+};
