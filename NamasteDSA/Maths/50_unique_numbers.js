@@ -1,4 +1,4 @@
-/**
+/** LEETCODE 50
  * @param {number} n
  * @return {number}
  */
@@ -38,4 +38,37 @@ n = 3
 | 3               | 81×8 = 648 | 7     | 739 | add all 3-digit uniques |
 | → ✅ returns 739 |            |       |     |                         |
 
+*/
+
+
+// MY SOLUTION 
+/**  
+var countNumbersWithUniqueDigits = function(n) {
+    if (n == 0) {
+        return 1
+    }
+    let count = 0;
+    let status;
+    for (let num = 0 ; num < 10 ** n ; num++) {
+        status = true;
+        let numStr = num.toString();
+        let sortedAsc = numStr.split('').sort().join('');
+        if (sortedAsc.length == 1) {
+                count++
+        } else {
+            for (let i = 0 ; i < sortedAsc.length - 1 ; i++) {
+                if (sortedAsc[i] == sortedAsc[i+1]) {
+                    status = false
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (status) {
+                count++
+            }
+        }
+    }
+    return count;
+};
 */
