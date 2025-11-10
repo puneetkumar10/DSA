@@ -1,3 +1,8 @@
+/**
+ * @param {number} num1
+ * @param {number} num2
+ * @return {number}
+ */
 function countOperations(num1, num2) {
     let num3 = 0;
     while (num1 > 0 && num2 > 0) {
