@@ -1,3 +1,6 @@
+// implement queue using stack 
+// 232 number leetcode
+
 var MyQueue = function() {
     this.input = [];
     this.output = [];
